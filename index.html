@@ -1,581 +1,841 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, ChevronLeft, ChevronRight, Moon, RotateCcw, ShieldAlert, Sun, Wind } from "lucide-react";
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Body Restart 30</title>
+  <meta name="theme-color" content="#e0f2fe" />
+  <style>
+    :root {
+      --bg1: #f8fafc;
+      --bg2: #e0f2fe;
+      --card: rgba(255,255,255,0.86);
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --blue: #0284c7;
+      --blue2: #38bdf8;
+      --green: #059669;
+      --amber: #d97706;
+      --red: #dc2626;
+    }
 
-const STORAGE_KEY = "bodyRestart30_v1";
+    * { box-sizing: border-box; }
 
-const exercises = {
-  breathing: {
-    label: "呼吸",
-    description: "肩を上げず、鼻から吸って口から長く吐きます。息を止めないことを優先します。",
-  },
-  neck: {
-    label: "首ストレッチ",
-    description: "首を強く回さず、横へゆっくり倒します。フラつきがある日は小さく行います。",
-  },
-  shoulder: {
-    label: "肩回し",
-    description: "肩甲骨を動かす意識で、痛みのない範囲でゆっくり回します。",
-  },
-  chest: {
-    label: "胸開き",
-    description: "胸の前を広げ、浅くなった呼吸を戻します。腰を反らしすぎないようにします。",
-  },
-  rotation: {
-    label: "胸郭回旋",
-    description: "背中と肋骨を左右に動かします。ゴルフのためではなく、呼吸と姿勢のためです。",
-  },
-  hip: {
-    label: "股関節ゆらし",
-    description: "股関節を固めず、脚の付け根をゆっくり緩めます。",
-  },
-  hamstring: {
-    label: "ハムストリング",
-    description: "太もも裏を伸ばします。反動をつけず、息を吐きながら行います。",
-  },
-  calf: {
-    label: "ふくらはぎ",
-    description: "歩行と血流の土台を戻します。足首も軽く動かします。",
-  },
-  walk: {
-    label: "歩行",
-    description: "走りません。会話できる程度のペースで、まずは血流を戻します。",
-  },
-  squat: {
-    label: "椅子スクワット",
-    description: "椅子に座るように浅く行います。膝より股関節を意識します。",
-  },
-  calfRaise: {
-    label: "かかと上げ",
-    description: "ふくらはぎを軽く使います。壁や机に手を添えて安全に行います。",
-  },
-  wallPush: {
-    label: "壁腕立て",
-    description: "壁に手をつき、肩甲骨を意識して軽く押します。首をすくめないようにします。",
-  },
-  plank: {
-    label: "軽い体幹",
-    description: "長時間は行いません。息を止めず、姿勢維持を目的にします。",
-  },
-  golf: {
-    label: "打ちっぱなし任意",
-    description: "運動目的ではなく感覚を戻す程度。30〜50球、フルスイングしすぎない。",
-  },
-};
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2), #ffffff);
+      min-height: 100vh;
+    }
+
+    .app {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin: 16px 0 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 7vw, 56px);
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 16px rgba(2,132,199,0.08);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 30px;
+      box-shadow: 0 18px 40px rgba(15,23,42,0.10);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .card-inner { padding: 22px; }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .day-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(25px, 5vw, 36px);
+      letter-spacing: -0.03em;
+    }
+
+    h3 {
+      margin: 0 0 14px;
+      font-size: 21px;
+    }
+
+    .progress-number {
+      text-align: right;
+      color: var(--blue);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .progress-caption {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .progress-track {
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0 0 18px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--blue2), var(--blue));
+      transition: width 0.25s ease;
+    }
+
+    .visual-box {
+      background: linear-gradient(145deg, #ffffff, #eff6ff);
+      border: 1px solid #bae6fd;
+      border-radius: 28px;
+      padding: 10px;
+      margin-bottom: 16px;
+    }
+
+    .visual {
+      width: 100%;
+      max-width: 280px;
+      height: 215px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .purpose {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 15px;
+      margin-bottom: 14px;
+    }
+
+    .small-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .purpose-text {
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+
+    .menus {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .menu {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 14px;
+    }
+
+    .menu-title {
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .menu ul {
+      padding-left: 1.1em;
+      margin: 0;
+      color: #334155;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .notice {
+      border-radius: 20px;
+      padding: 14px 15px;
+      margin: 14px 0;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .notice strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .notice.normal { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .notice.light { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .notice.stop { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 11px 16px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #0f172a;
+      background: #e2e8f0;
+      transition: transform 0.08s ease, opacity 0.2s ease;
+      font-family: inherit;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .primary {
+      background: #0284c7;
+      color: white;
+    }
+
+    .outline {
+      background: white;
+      border: 1px solid #cbd5e1;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .log-status {
+      color: #475569;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+    }
+
+    label {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    input, select {
+      display: block;
+      width: 100%;
+      margin-top: 5px;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 10px 11px;
+      background: white;
+      color: #0f172a;
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+    }
+
+    .day-btn {
+      aspect-ratio: 1;
+      padding: 0;
+      border-radius: 15px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      font-size: 14px;
+    }
+
+    .day-btn.current { background: #0284c7; color: white; border-color: #0284c7; }
+    .day-btn.done { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+    .day-btn.lightdone { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+    .day-btn.rest { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
+
+    .help {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+      margin-top: 12px;
+    }
+
+    .exercise-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .exercise {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 17px;
+      padding: 11px;
+    }
+
+    .exercise strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .exercise p {
+      margin: 0;
+      color: #64748b;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: #64748b;
+      font-size: 12px;
+      margin: 22px 0 8px;
+      line-height: 1.7;
+    }
+
+    /* SVG animation */
+    .breath { animation: breath 4s ease-in-out infinite; transform-origin: 130px 132px; }
+    @keyframes breath { 0%,100% { transform: scale(0.9); opacity: 0.55; } 50% { transform: scale(1.14); opacity: 1; } }
+
+    .tilt { animation: tilt 3.2s ease-in-out infinite; transform-origin: 130px 110px; }
+    @keyframes tilt { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+
+    .spin1 { animation: spin1 3.4s linear infinite; transform-origin: 86px 118px; }
+    .spin2 { animation: spin2 3.4s linear infinite; transform-origin: 174px 118px; }
+    @keyframes spin1 { to { transform: rotate(360deg); } }
+    @keyframes spin2 { to { transform: rotate(-360deg); } }
+
+    .open-left { animation: openLeft 3s ease-in-out infinite; }
+    .open-right { animation: openRight 3s ease-in-out infinite; }
+    @keyframes openLeft { 0%,100% { transform: translate(20px, 18px); } 50% { transform: translate(0, 0); } }
+    @keyframes openRight { 0%,100% { transform: translate(-20px, 18px); } 50% { transform: translate(0, 0); } }
+
+    .rotate-body { animation: rotateBody 3.2s ease-in-out infinite; transform-origin: 130px 128px; }
+    @keyframes rotateBody { 0%,100% { transform: rotate(-13deg); } 50% { transform: rotate(13deg); } }
+
+    .hip-left { animation: hipLeft 2.8s ease-in-out infinite; }
+    .hip-right { animation: hipRight 2.8s ease-in-out infinite; }
+    @keyframes hipLeft { 0%,100% { transform: translateX(8px); } 50% { transform: translateX(-10px); } }
+    @keyframes hipRight { 0%,100% { transform: translateX(-8px); } 50% { transform: translateX(10px); } }
+
+    .bend { animation: bend 3s ease-in-out infinite; transform-origin: 130px 120px; }
+    @keyframes bend { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(10deg); } }
+
+    .raise { animation: raise 1.8s ease-in-out infinite; }
+    @keyframes raise { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    .squat { animation: squat 2.2s ease-in-out infinite; }
+    @keyframes squat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(14px); } }
+
+    .push { animation: push 2s ease-in-out infinite; }
+    @keyframes push { 0%,100% { transform: translateX(0); } 50% { transform: translateX(10px); } }
+
+    .walk1 { animation: walk1 0.85s ease-in-out infinite; }
+    .walk2 { animation: walk2 0.85s ease-in-out infinite; }
+    @keyframes walk1 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    @keyframes walk2 { 0%,100% { transform: translateY(-12px); } 50% { transform: translateY(0); } }
+
+    @media (max-width: 900px) {
+      header { flex-direction: column; align-items: stretch; }
+      .layout { grid-template-columns: 1fr; }
+      .nav-buttons { width: 100%; }
+      .nav-buttons button { flex: 1; }
+    }
+
+    @media (max-width: 620px) {
+      .app { padding: 12px; }
+      .card-inner { padding: 16px; }
+      .menus { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .calendar { grid-template-columns: repeat(5, 1fr); }
+      .top-row { flex-direction: column; }
+      .progress-number, .progress-caption { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <div class="badge">🫁 56歳からの体力再起動</div>
+        <h1>Body Restart 30</h1>
+        <div class="subtitle">呼吸・ストレッチ・血流・歩行を30日で静かに戻す日めくりアプリ</div>
+      </div>
+      <div class="nav-buttons">
+        <button class="outline" id="prevBtn">← 前日</button>
+        <button class="outline" id="nextBtn">翌日 →</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="card">
+        <div class="card-inner">
+          <div class="top-row">
+            <div>
+              <div class="day-label" id="dayLabel">Day 1 / 30</div>
+              <h2 id="dayTitle">呼吸を戻す</h2>
+            </div>
+            <div>
+              <div class="progress-caption">進捗</div>
+              <div class="progress-number" id="progressNumber">0%</div>
+            </div>
+          </div>
+
+          <div class="progress-track">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+
+          <div class="visual-box" id="visualBox"></div>
+
+          <div class="purpose">
+            <div class="small-title">今日の目的</div>
+            <div class="purpose-text" id="goalText"></div>
+          </div>
+
+          <div class="menus">
+            <div class="menu">
+              <div class="menu-title">☀️ 朝</div>
+              <ul id="morningList"></ul>
+            </div>
+            <div class="menu">
+              <div class="menu-title">🚶 昼</div>
+              <ul id="noonList"></ul>
+            </div>
+            <div class="menu">
+              <div class="menu-title">🌙 夜</div>
+              <ul id="nightList"></ul>
+            </div>
+          </div>
+
+          <div id="safetyNotice"></div>
+
+          <div class="buttons">
+            <button class="primary" id="doneBtn">完了</button>
+            <button id="lightDoneBtn">軽めで完了</button>
+            <button class="outline" id="restBtn">今日は休む</button>
+            <span class="log-status" id="logStatus"></span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="card">
+          <div class="card-inner">
+            <h3>今日の体調チェック</h3>
+            <div class="form-grid">
+              <label>体重 kg
+                <input id="weight" type="number" inputmode="decimal" />
+              </label>
+              <label>体脂肪 %
+                <input id="bodyFat" type="number" inputmode="decimal" />
+              </label>
+              <label>内臓脂肪
+                <input id="visceralFat" type="number" inputmode="decimal" />
+              </label>
+              <label>肩こり 1〜5
+                <select id="shoulder">
+                  <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+                </select>
+              </label>
+              <label>頭の締め付け
+                <select id="headPressure"><option>なし</option><option>少し</option><option>強い</option></select>
+              </label>
+              <label>フラつき
+                <select id="dizziness"><option>なし</option><option>少し</option><option>強い</option></select>
+              </label>
+              <label>息苦しさ
+                <select id="breathlessness"><option>なし</option><option>少し</option><option>強い</option></select>
+              </label>
+              <label>胸の違和感
+                <select id="chestDiscomfort"><option>なし</option><option>あり</option></select>
+              </label>
+              <label>睡眠
+                <select id="sleep"><option>良い</option><option selected>普通</option><option>悪い</option></select>
+              </label>
+              <label>気分
+                <select id="mood"><option>良い</option><option selected>普通</option><option>悪い</option></select>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-inner">
+            <h3>30日カレンダー</h3>
+            <div class="calendar" id="calendar"></div>
+            <div class="help">※ このアプリは医療診断ではありません。胸の違和感、強い息切れ、強いフラつき、強い頭の締め付けがある日は運動を中止してください。</div>
+            <button class="outline" id="resetBtn" style="margin-top:12px;">記録をリセット</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-inner">
+            <h3>基本方針</h3>
+            <div class="exercise-list">
+              <div class="exercise"><strong>呼吸</strong><p>肩を上げず、鼻から吸って口から長く吐きます。息を止めないことを優先します。</p></div>
+              <div class="exercise"><strong>首・肩</strong><p>首を強く回さず、痛みのない範囲で小さく動かします。</p></div>
+              <div class="exercise"><strong>ストレッチ</strong><p>反動をつけず、伸びている場所を感じながら行います。</p></div>
+              <div class="exercise"><strong>歩行</strong><p>走りません。会話できる程度のペースで血流を戻します。</p></div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <div class="footer-note">
+      Body Restart 30 v1.0 / localStorage保存 / GitHub Pages対応
+    </div>
+  </div>
+
+<script>
+const STORAGE_KEY = "bodyRestart30_singleHtml_v1";
 
 const program = [
-  { day: 1, phase: "解除期", title: "呼吸を戻す", visual: "breathing", goal: "まず胸郭を広げ、浅い呼吸を戻します。", morning: ["呼吸 2分", "首ストレッチ 1分", "胸開き 1分"], noon: ["10分歩行"], night: ["股関節ゆらし 2分", "ふくらはぎ 2分", "呼吸 2分"] },
-  { day: 2, phase: "解除期", title: "首肩をゆるめる", visual: "neck", goal: "頭の締め付け感につながりやすい首肩の緊張を軽くします。", morning: ["呼吸 2分", "首ストレッチ 2分", "肩回し 1分"], noon: ["10分歩行"], night: ["胸開き 2分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 3, phase: "解除期", title: "胸を開く", visual: "chest", goal: "PC姿勢で閉じた胸を開き、呼吸しやすい姿勢を作ります。", morning: ["呼吸 2分", "胸開き 2分", "肩回し 1分"], noon: ["10分歩行", "立ったまま胸郭回旋 1分"], night: ["股関節ゆらし 2分", "ふくらはぎ 2分", "呼吸 2分"] },
-  { day: 4, phase: "解除期", title: "背中を動かす", visual: "rotation", goal: "肋骨と背中を動かし、固まった上半身を解除します。", morning: ["呼吸 2分", "胸郭回旋 2分"], noon: ["10〜12分歩行"], night: ["肩回し 2分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 5, phase: "解除期", title: "股関節を緩める", visual: "hip", goal: "歩行を重くする股関節の硬さを少しずつ戻します。", morning: ["呼吸 2分", "股関節ゆらし 2分"], noon: ["10〜12分歩行"], night: ["股関節ゆらし 3分", "ふくらはぎ 2分", "呼吸 2分"] },
-  { day: 6, phase: "解除期", title: "脚の血流を戻す", visual: "calf", goal: "ふくらはぎと足首を動かし、歩く準備を整えます。", morning: ["呼吸 2分", "足首回し 1分", "肩回し 1分"], noon: ["12分歩行"], night: ["ふくらはぎ 3分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 7, phase: "解除期", title: "回復日", visual: "breathing", goal: "1週間目の疲れを残さず、軽く整える日にします。", morning: ["呼吸 3分", "首ストレッチ 1分"], noon: ["気分が良ければ10分歩行"], night: ["胸開き 2分", "股関節ゆらし 2分", "呼吸 3分"] },
-  { day: 8, phase: "再起動期", title: "歩ける身体へ", visual: "walk", goal: "少しだけ歩行時間を伸ばします。", morning: ["呼吸 2分", "胸開き 2分"], noon: ["12〜15分歩行"], night: ["ふくらはぎ 2分", "股関節ゆらし 2分", "呼吸 2分"] },
-  { day: 9, phase: "再起動期", title: "脚に軽く刺激", visual: "squat", goal: "椅子スクワットで下半身に安全な刺激を入れます。", morning: ["呼吸 2分", "肩回し 1分"], noon: ["12分歩行", "椅子スクワット 5回×2"], night: ["ハムストリング 2分", "ふくらはぎ 2分", "呼吸 2分"] },
-  { day: 10, phase: "再起動期", title: "肩甲骨を動かす", visual: "shoulder", goal: "肩こり対策として肩甲骨を意識して動かします。", morning: ["呼吸 2分", "肩回し 2分", "胸開き 1分"], noon: ["15分歩行"], night: ["胸郭回旋 2分", "股関節ゆらし 2分", "呼吸 2分"] },
-  { day: 11, phase: "再起動期", title: "ふくらはぎを使う", visual: "calfRaise", goal: "歩行の土台になるふくらはぎを軽く使います。", morning: ["呼吸 2分", "足首回し 1分"], noon: ["15分歩行", "かかと上げ 10回×2"], night: ["ふくらはぎ 3分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 12, phase: "再起動期", title: "背中と股関節", visual: "rotation", goal: "上半身と下半身の連動を少し戻します。", morning: ["呼吸 2分", "胸郭回旋 2分"], noon: ["15分歩行"], night: ["股関節ゆらし 3分", "胸開き 2分", "呼吸 2分"] },
-  { day: 13, phase: "再起動期", title: "軽い全身刺激", visual: "squat", goal: "無理なく全身を使う日です。", morning: ["呼吸 2分", "肩回し 1分"], noon: ["15分歩行", "椅子スクワット 6回×2", "かかと上げ 10回"], night: ["ハムストリング 2分", "ふくらはぎ 2分", "呼吸 2分"] },
-  { day: 14, phase: "再起動期", title: "回復日", visual: "breathing", goal: "2週間目の疲れを抜きます。", morning: ["呼吸 3分", "胸開き 1分"], noon: ["気分が良ければ10分歩行"], night: ["首ストレッチ 1分", "股関節ゆらし 2分", "呼吸 3分"] },
-  { day: 15, phase: "循環期", title: "心肺を起こす", visual: "walk", goal: "歩行の中に少しだけ早歩きを入れます。", morning: ["呼吸 2分", "胸郭回旋 2分"], noon: ["15〜18分歩行", "早歩き30秒×2"], night: ["ふくらはぎ 2分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 16, phase: "循環期", title: "姿勢を支える", visual: "wallPush", goal: "壁腕立てで胸・肩甲骨・体幹を軽く使います。", morning: ["呼吸 2分", "肩回し 2分"], noon: ["15分歩行", "壁腕立て 8回×2"], night: ["胸開き 2分", "股関節ゆらし 2分", "呼吸 2分"] },
-  { day: 17, phase: "循環期", title: "脚と呼吸", visual: "calfRaise", goal: "歩行と呼吸を合わせ、循環を戻します。", morning: ["呼吸 2分", "胸開き 2分"], noon: ["18分歩行", "早歩き30秒×2", "かかと上げ 10回×2"], night: ["ふくらはぎ 3分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 18, phase: "循環期", title: "回旋を戻す", visual: "rotation", goal: "胸郭回旋で背中の硬さを取り、呼吸を深めます。", morning: ["呼吸 2分", "胸郭回旋 3分"], noon: ["18分歩行"], night: ["股関節ゆらし 2分", "胸開き 2分", "呼吸 2分"] },
-  { day: 19, phase: "循環期", title: "少し息を上げる", visual: "walk", goal: "会話できる範囲で心肺に刺激を入れます。", morning: ["呼吸 2分", "首ストレッチ 1分"], noon: ["20分歩行", "早歩き30秒×3"], night: ["ふくらはぎ 2分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 20, phase: "循環期", title: "軽い体幹", visual: "plank", goal: "長く固めず、短く姿勢を支えます。", morning: ["呼吸 2分", "肩回し 2分"], noon: ["15分歩行", "軽い体幹 10秒×2", "椅子スクワット 6回×2"], night: ["股関節ゆらし 2分", "胸開き 2分", "呼吸 2分"] },
-  { day: 21, phase: "循環期", title: "回復日", visual: "breathing", goal: "心肺刺激の疲れを残さない日です。", morning: ["呼吸 3分", "胸開き 1分"], noon: ["10〜15分の楽な歩行"], night: ["首ストレッチ 1分", "ふくらはぎ 2分", "呼吸 3分"] },
-  { day: 22, phase: "定着期", title: "20分を普通にする", visual: "walk", goal: "20分歩行を日常に近づけます。", morning: ["呼吸 2分", "胸郭回旋 2分"], noon: ["20分歩行", "早歩き30秒×3"], night: ["股関節ゆらし 2分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 23, phase: "定着期", title: "軽い筋力の日", visual: "squat", goal: "週2回程度の筋力習慣に近づけます。", morning: ["呼吸 2分", "肩回し 1分"], noon: ["15分歩行", "椅子スクワット 8回×2", "壁腕立て 8回×2"], night: ["ふくらはぎ 2分", "胸開き 2分", "呼吸 2分"] },
-  { day: 24, phase: "定着期", title: "肩こり対策の日", visual: "shoulder", goal: "首肩の張りをためない日です。", morning: ["呼吸 2分", "首ストレッチ 2分", "肩回し 2分"], noon: ["20分歩行"], night: ["胸開き 3分", "胸郭回旋 2分", "呼吸 2分"] },
-  { day: 25, phase: "定着期", title: "歩行＋早歩き", visual: "walk", goal: "心肺機能に少しだけ負荷をかけます。", morning: ["呼吸 2分", "胸開き 1分"], noon: ["22分歩行", "早歩き30秒×4"], night: ["ふくらはぎ 3分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 26, phase: "定着期", title: "股関節と背中", visual: "hip", goal: "歩行とゴルフ動作の土台を整えます。", morning: ["呼吸 2分", "胸郭回旋 2分"], noon: ["15〜20分歩行"], night: ["股関節ゆらし 3分", "ハムストリング 2分", "胸開き 2分"] },
-  { day: 27, phase: "定着期", title: "全身を軽く使う", visual: "wallPush", goal: "無理のない範囲で全身を使います。", morning: ["呼吸 2分", "肩回し 2分"], noon: ["20分歩行", "椅子スクワット 8回×2", "壁腕立て 8回×2", "かかと上げ 12回×2"], night: ["股関節ゆらし 2分", "ふくらはぎ 2分", "呼吸 2分"] },
-  { day: 28, phase: "定着期", title: "回復日", visual: "breathing", goal: "頑張りすぎず、続く身体に整えます。", morning: ["呼吸 3分", "首ストレッチ 1分"], noon: ["楽な10〜15分歩行"], night: ["胸開き 2分", "股関節ゆらし 2分", "呼吸 3分"] },
-  { day: 29, phase: "定着期", title: "30日後の準備", visual: "walk", goal: "30日後も続ける形を考えながら歩きます。", morning: ["呼吸 2分", "胸郭回旋 2分"], noon: ["25分歩行", "早歩き30秒×4"], night: ["ふくらはぎ 2分", "ハムストリング 2分", "呼吸 2分"] },
-  { day: 30, phase: "定着期", title: "再起動完了", visual: "golf", goal: "ここから次の30日へ。打ちっぱなし再開も選択肢に入れます。", morning: ["呼吸 2分", "胸開き 2分"], noon: ["20〜30分歩行 または 打ちっぱなし30〜50球"], night: ["股関節ゆらし 2分", "ふくらはぎ 2分", "呼吸 3分"] },
+  {day:1, phase:"解除期", title:"呼吸を戻す", visual:"breathing", goal:"まず胸郭を広げ、浅い呼吸を戻します。", morning:["呼吸 2分","首ストレッチ 1分","胸開き 1分"], noon:["10分歩行"], night:["股関節ゆらし 2分","ふくらはぎ 2分","呼吸 2分"]},
+  {day:2, phase:"解除期", title:"首肩をゆるめる", visual:"neck", goal:"頭の締め付け感につながりやすい首肩の緊張を軽くします。", morning:["呼吸 2分","首ストレッチ 2分","肩回し 1分"], noon:["10分歩行"], night:["胸開き 2分","ハムストリング 2分","呼吸 2分"]},
+  {day:3, phase:"解除期", title:"胸を開く", visual:"chest", goal:"PC姿勢で閉じた胸を開き、呼吸しやすい姿勢を作ります。", morning:["呼吸 2分","胸開き 2分","肩回し 1分"], noon:["10分歩行","立ったまま胸郭回旋 1分"], night:["股関節ゆらし 2分","ふくらはぎ 2分","呼吸 2分"]},
+  {day:4, phase:"解除期", title:"背中を動かす", visual:"rotation", goal:"肋骨と背中を動かし、固まった上半身を解除します。", morning:["呼吸 2分","胸郭回旋 2分"], noon:["10〜12分歩行"], night:["肩回し 2分","ハムストリング 2分","呼吸 2分"]},
+  {day:5, phase:"解除期", title:"股関節を緩める", visual:"hip", goal:"歩行を重くする股関節の硬さを少しずつ戻します。", morning:["呼吸 2分","股関節ゆらし 2分"], noon:["10〜12分歩行"], night:["股関節ゆらし 3分","ふくらはぎ 2分","呼吸 2分"]},
+  {day:6, phase:"解除期", title:"脚の血流を戻す", visual:"calf", goal:"ふくらはぎと足首を動かし、歩く準備を整えます。", morning:["呼吸 2分","足首回し 1分","肩回し 1分"], noon:["12分歩行"], night:["ふくらはぎ 3分","ハムストリング 2分","呼吸 2分"]},
+  {day:7, phase:"解除期", title:"回復日", visual:"breathing", goal:"1週間目の疲れを残さず、軽く整える日にします。", morning:["呼吸 3分","首ストレッチ 1分"], noon:["気分が良ければ10分歩行"], night:["胸開き 2分","股関節ゆらし 2分","呼吸 3分"]},
+  {day:8, phase:"再起動期", title:"歩ける身体へ", visual:"walk", goal:"少しだけ歩行時間を伸ばします。", morning:["呼吸 2分","胸開き 2分"], noon:["12〜15分歩行"], night:["ふくらはぎ 2分","股関節ゆらし 2分","呼吸 2分"]},
+  {day:9, phase:"再起動期", title:"脚に軽く刺激", visual:"squat", goal:"椅子スクワットで下半身に安全な刺激を入れます。", morning:["呼吸 2分","肩回し 1分"], noon:["12分歩行","椅子スクワット 5回×2"], night:["ハムストリング 2分","ふくらはぎ 2分","呼吸 2分"]},
+  {day:10, phase:"再起動期", title:"肩甲骨を動かす", visual:"shoulder", goal:"肩こり対策として肩甲骨を意識して動かします。", morning:["呼吸 2分","肩回し 2分","胸開き 1分"], noon:["15分歩行"], night:["胸郭回旋 2分","股関節ゆらし 2分","呼吸 2分"]},
+  {day:11, phase:"再起動期", title:"ふくらはぎを使う", visual:"calfRaise", goal:"歩行の土台になるふくらはぎを軽く使います。", morning:["呼吸 2分","足首回し 1分"], noon:["15分歩行","かかと上げ 10回×2"], night:["ふくらはぎ 3分","ハムストリング 2分","呼吸 2分"]},
+  {day:12, phase:"再起動期", title:"背中と股関節", visual:"rotation", goal:"上半身と下半身の連動を少し戻します。", morning:["呼吸 2分","胸郭回旋 2分"], noon:["15分歩行"], night:["股関節ゆらし 3分","胸開き 2分","呼吸 2分"]},
+  {day:13, phase:"再起動期", title:"軽い全身刺激", visual:"squat", goal:"無理なく全身を使う日です。", morning:["呼吸 2分","肩回し 1分"], noon:["15分歩行","椅子スクワット 6回×2","かかと上げ 10回"], night:["ハムストリング 2分","ふくらはぎ 2分","呼吸 2分"]},
+  {day:14, phase:"再起動期", title:"回復日", visual:"breathing", goal:"2週間目の疲れを抜きます。", morning:["呼吸 3分","胸開き 1分"], noon:["気分が良ければ10分歩行"], night:["首ストレッチ 1分","股関節ゆらし 2分","呼吸 3分"]},
+  {day:15, phase:"循環期", title:"心肺を起こす", visual:"walk", goal:"歩行の中に少しだけ早歩きを入れます。", morning:["呼吸 2分","胸郭回旋 2分"], noon:["15〜18分歩行","早歩き30秒×2"], night:["ふくらはぎ 2分","ハムストリング 2分","呼吸 2分"]},
+  {day:16, phase:"循環期", title:"姿勢を支える", visual:"wallPush", goal:"壁腕立てで胸・肩甲骨・体幹を軽く使います。", morning:["呼吸 2分","肩回し 2分"], noon:["15分歩行","壁腕立て 8回×2"], night:["胸開き 2分","股関節ゆらし 2分","呼吸 2分"]},
+  {day:17, phase:"循環期", title:"脚と呼吸", visual:"calfRaise", goal:"歩行と呼吸を合わせ、循環を戻します。", morning:["呼吸 2分","胸開き 2分"], noon:["18分歩行","早歩き30秒×2","かかと上げ 10回×2"], night:["ふくらはぎ 3分","ハムストリング 2分","呼吸 2分"]},
+  {day:18, phase:"循環期", title:"回旋を戻す", visual:"rotation", goal:"胸郭回旋で背中の硬さを取り、呼吸を深めます。", morning:["呼吸 2分","胸郭回旋 3分"], noon:["18分歩行"], night:["股関節ゆらし 2分","胸開き 2分","呼吸 2分"]},
+  {day:19, phase:"循環期", title:"少し息を上げる", visual:"walk", goal:"会話できる範囲で心肺に刺激を入れます。", morning:["呼吸 2分","首ストレッチ 1分"], noon:["20分歩行","早歩き30秒×3"], night:["ふくらはぎ 2分","ハムストリング 2分","呼吸 2分"]},
+  {day:20, phase:"循環期", title:"軽い体幹", visual:"plank", goal:"長く固めず、短く姿勢を支えます。", morning:["呼吸 2分","肩回し 2分"], noon:["15分歩行","軽い体幹 10秒×2","椅子スクワット 6回×2"], night:["股関節ゆらし 2分","胸開き 2分","呼吸 2分"]},
+  {day:21, phase:"循環期", title:"回復日", visual:"breathing", goal:"心肺刺激の疲れを残さない日です。", morning:["呼吸 3分","胸開き 1分"], noon:["10〜15分の楽な歩行"], night:["首ストレッチ 1分","ふくらはぎ 2分","呼吸 3分"]},
+  {day:22, phase:"定着期", title:"20分を普通にする", visual:"walk", goal:"20分歩行を日常に近づけます。", morning:["呼吸 2分","胸郭回旋 2分"], noon:["20分歩行","早歩き30秒×3"], night:["股関節ゆらし 2分","ハムストリング 2分","呼吸 2分"]},
+  {day:23, phase:"定着期", title:"軽い筋力の日", visual:"squat", goal:"週2回程度の筋力習慣に近づけます。", morning:["呼吸 2分","肩回し 1分"], noon:["15分歩行","椅子スクワット 8回×2","壁腕立て 8回×2"], night:["ふくらはぎ 2分","胸開き 2分","呼吸 2分"]},
+  {day:24, phase:"定着期", title:"肩こり対策の日", visual:"shoulder", goal:"首肩の張りをためない日です。", morning:["呼吸 2分","首ストレッチ 2分","肩回し 2分"], noon:["20分歩行"], night:["胸開き 3分","胸郭回旋 2分","呼吸 2分"]},
+  {day:25, phase:"定着期", title:"歩行＋早歩き", visual:"walk", goal:"心肺機能に少しだけ負荷をかけます。", morning:["呼吸 2分","胸開き 1分"], noon:["22分歩行","早歩き30秒×4"], night:["ふくらはぎ 3分","ハムストリング 2分","呼吸 2分"]},
+  {day:26, phase:"定着期", title:"股関節と背中", visual:"hip", goal:"歩行とゴルフ動作の土台を整えます。", morning:["呼吸 2分","胸郭回旋 2分"], noon:["15〜20分歩行"], night:["股関節ゆらし 3分","ハムストリング 2分","胸開き 2分"]},
+  {day:27, phase:"定着期", title:"全身を軽く使う", visual:"wallPush", goal:"無理のない範囲で全身を使います。", morning:["呼吸 2分","肩回し 2分"], noon:["20分歩行","椅子スクワット 8回×2","壁腕立て 8回×2","かかと上げ 12回×2"], night:["股関節ゆらし 2分","ふくらはぎ 2分","呼吸 2分"]},
+  {day:28, phase:"定着期", title:"回復日", visual:"breathing", goal:"頑張りすぎず、続く身体に整えます。", morning:["呼吸 3分","首ストレッチ 1分"], noon:["楽な10〜15分歩行"], night:["胸開き 2分","股関節ゆらし 2分","呼吸 3分"]},
+  {day:29, phase:"定着期", title:"30日後の準備", visual:"walk", goal:"30日後も続ける形を考えながら歩きます。", morning:["呼吸 2分","胸郭回旋 2分"], noon:["25分歩行","早歩き30秒×4"], night:["ふくらはぎ 2分","ハムストリング 2分","呼吸 2分"]},
+  {day:30, phase:"定着期", title:"再起動完了", visual:"golf", goal:"ここから次の30日へ。打ちっぱなし再開も選択肢に入れます。", morning:["呼吸 2分","胸開き 2分"], noon:["20〜30分歩行 または 打ちっぱなし30〜50球"], night:["股関節ゆらし 2分","ふくらはぎ 2分","呼吸 3分"]}
 ];
 
-function defaultData() {
-  return {
-    currentDay: 1,
-    logs: {},
-    metrics: {},
-  };
+let state = loadState();
+
+function defaultState() {
+  return { currentDay: 1, logs: {}, metrics: {} };
 }
 
-function loadData() {
+function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...defaultData(), ...JSON.parse(raw) } : defaultData();
-  } catch {
-    return defaultData();
+    return raw ? Object.assign(defaultState(), JSON.parse(raw)) : defaultState();
+  } catch(e) {
+    return defaultState();
   }
 }
 
-function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-function Visual({ type }) {
-  const common = "w-full max-w-[260px] h-[210px] mx-auto";
-
-  if (type === "breathing") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <circle cx="130" cy="82" r="32" fill="currentColor" className="text-slate-300" />
-        <rect x="105" y="112" width="50" height="70" rx="25" fill="currentColor" className="text-slate-300" />
-        <motion.ellipse cx="130" cy="132" rx="48" ry="34" fill="none" stroke="currentColor" strokeWidth="10" className="text-sky-400" animate={{ rx: [42, 58, 42], ry: [28, 40, 28], opacity: [0.55, 0.95, 0.55] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} />
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">吸って、長く吐く</text>
-      </svg>
-    );
-  }
-
-  if (type === "neck") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <rect x="112" y="112" width="36" height="66" rx="18" fill="currentColor" className="text-slate-300" />
-        <motion.g style={{ transformOrigin: "130px 110px" }} animate={{ rotate: [-8, 8, -8] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}>
-          <circle cx="130" cy="78" r="34" fill="currentColor" className="text-slate-300" />
-          <line x1="162" y1="90" x2="194" y2="112" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-sky-400" />
-        </motion.g>
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">首は小さく、ゆっくり</text>
-      </svg>
-    );
-  }
-
-  if (type === "shoulder") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <circle cx="130" cy="70" r="30" fill="currentColor" className="text-slate-300" />
-        <rect x="98" y="102" width="64" height="76" rx="28" fill="currentColor" className="text-slate-300" />
-        <motion.g style={{ transformOrigin: "86px 118px" }} animate={{ rotate: [0, 360] }} transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}>
-          <circle cx="86" cy="118" r="8" fill="currentColor" className="text-sky-400" />
-          <path d="M86 118 C64 92, 62 142, 86 118" fill="none" stroke="currentColor" strokeWidth="6" className="text-sky-400" />
-        </motion.g>
-        <motion.g style={{ transformOrigin: "174px 118px" }} animate={{ rotate: [0, -360] }} transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}>
-          <circle cx="174" cy="118" r="8" fill="currentColor" className="text-sky-400" />
-          <path d="M174 118 C196 92, 198 142, 174 118" fill="none" stroke="currentColor" strokeWidth="6" className="text-sky-400" />
-        </motion.g>
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">肩甲骨から回す</text>
-      </svg>
-    );
-  }
-
-  if (type === "chest") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <circle cx="130" cy="70" r="30" fill="currentColor" className="text-slate-300" />
-        <rect x="100" y="104" width="60" height="76" rx="26" fill="currentColor" className="text-slate-300" />
-        <motion.line x1="101" y1="122" x2="62" y2="105" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="text-sky-400" animate={{ x2: [82, 52, 82], y2: [125, 104, 125] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} />
-        <motion.line x1="159" y1="122" x2="198" y2="105" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="text-sky-400" animate={{ x2: [178, 208, 178], y2: [125, 104, 125] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} />
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">胸を開く、腰は反らない</text>
-      </svg>
-    );
-  }
-
-  if (type === "rotation" || type === "golf") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <circle cx="130" cy="66" r="28" fill="currentColor" className="text-slate-300" />
-        <motion.g style={{ transformOrigin: "130px 128px" }} animate={{ rotate: [-14, 14, -14] }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}>
-          <rect x="96" y="98" width="68" height="78" rx="28" fill="currentColor" className="text-slate-300" />
-          <line x1="70" y1="126" x2="190" y2="126" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="text-sky-400" />
-          {type === "golf" && <line x1="182" y1="130" x2="214" y2="166" stroke="currentColor" strokeWidth="5" strokeLinecap="round" className="text-slate-500" />}
-        </motion.g>
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">背中と肋骨をゆっくり回す</text>
-      </svg>
-    );
-  }
-
-  if (type === "hip") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <circle cx="130" cy="62" r="27" fill="currentColor" className="text-slate-300" />
-        <rect x="104" y="92" width="52" height="58" rx="24" fill="currentColor" className="text-slate-300" />
-        <motion.line x1="116" y1="144" x2="86" y2="178" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" animate={{ x2: [96, 76, 96] }} transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }} />
-        <motion.line x1="144" y1="144" x2="174" y2="178" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" animate={{ x2: [164, 184, 164] }} transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }} />
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">股関節を小さくゆらす</text>
-      </svg>
-    );
-  }
-
-  if (type === "hamstring") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <motion.g style={{ transformOrigin: "130px 120px" }} animate={{ rotate: [0, 10, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
-          <circle cx="130" cy="68" r="28" fill="currentColor" className="text-slate-300" />
-          <rect x="105" y="96" width="50" height="58" rx="22" fill="currentColor" className="text-slate-300" />
-        </motion.g>
-        <line x1="118" y1="150" x2="82" y2="184" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" />
-        <line x1="142" y1="150" x2="178" y2="184" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" />
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">反動なし、息を吐く</text>
-      </svg>
-    );
-  }
-
-  if (type === "calf" || type === "calfRaise") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <circle cx="130" cy="62" r="27" fill="currentColor" className="text-slate-300" />
-        <rect x="104" y="92" width="52" height="58" rx="24" fill="currentColor" className="text-slate-300" />
-        <motion.g animate={{ y: type === "calfRaise" ? [0, -10, 0] : [0, 0, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
-          <line x1="116" y1="146" x2="110" y2="184" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" />
-          <line x1="144" y1="146" x2="150" y2="184" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" />
-        </motion.g>
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">ふくらはぎは血流のポンプ</text>
-      </svg>
-    );
-  }
-
-  if (type === "squat") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <motion.g animate={{ y: [0, 14, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}>
-          <circle cx="130" cy="58" r="27" fill="currentColor" className="text-slate-300" />
-          <rect x="104" y="88" width="52" height="58" rx="24" fill="currentColor" className="text-slate-300" />
-          <line x1="116" y1="142" x2="98" y2="178" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" />
-          <line x1="144" y1="142" x2="162" y2="178" stroke="currentColor" strokeWidth="11" strokeLinecap="round" className="text-sky-400" />
-        </motion.g>
-        <rect x="82" y="180" width="96" height="8" rx="4" fill="currentColor" className="text-slate-300" />
-        <text x="130" y="202" textAnchor="middle" className="fill-slate-500 text-sm">椅子に座るように浅く</text>
-      </svg>
-    );
-  }
-
-  if (type === "wallPush") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <rect x="205" y="30" width="8" height="150" rx="4" fill="currentColor" className="text-slate-300" />
-        <motion.g animate={{ x: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-          <circle cx="112" cy="62" r="27" fill="currentColor" className="text-slate-300" />
-          <rect x="92" y="92" width="45" height="64" rx="22" fill="currentColor" className="text-slate-300" />
-          <line x1="135" y1="112" x2="204" y2="112" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="text-sky-400" />
-        </motion.g>
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">首をすくめない</text>
-      </svg>
-    );
-  }
-
-  if (type === "plank") {
-    return (
-      <svg viewBox="0 0 260 210" className={common}>
-        <motion.g animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-          <circle cx="78" cy="112" r="24" fill="currentColor" className="text-slate-300" />
-          <line x1="102" y1="120" x2="178" y2="132" stroke="currentColor" strokeWidth="18" strokeLinecap="round" className="text-slate-300" />
-          <line x1="70" y1="134" x2="56" y2="164" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="text-sky-400" />
-          <line x1="178" y1="132" x2="210" y2="162" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="text-sky-400" />
-        </motion.g>
-        <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">短く、息を止めない</text>
-      </svg>
-    );
-  }
-
-  return (
-    <svg viewBox="0 0 260 210" className={common}>
-      <motion.circle cx="105" cy="128" r="12" fill="currentColor" className="text-sky-400" animate={{ cy: [128, 116, 128] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.circle cx="155" cy="128" r="12" fill="currentColor" className="text-sky-400" animate={{ cy: [116, 128, 116] }} transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }} />
-      <circle cx="130" cy="70" r="28" fill="currentColor" className="text-slate-300" />
-      <rect x="106" y="98" width="48" height="62" rx="22" fill="currentColor" className="text-slate-300" />
-      <text x="130" y="200" textAnchor="middle" className="fill-slate-500 text-sm">楽に歩く</text>
-    </svg>
-  );
+function currentMetrics() {
+  const d = state.currentDay;
+  if (!state.metrics[d]) state.metrics[d] = {};
+  return state.metrics[d];
 }
 
-function MenuBlock({ icon, title, items }) {
-  return (
-    <div className="rounded-2xl bg-white/75 p-4 shadow-sm border border-slate-100">
-      <div className="flex items-center gap-2 font-semibold text-slate-800 mb-2">
-        {icon}
-        <span>{title}</span>
-      </div>
-      <ul className="space-y-1 text-sm text-slate-700">
-        {items.map((item) => (
-          <li key={item} className="flex gap-2">
-            <span className="text-sky-500">•</span>
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function SafetyNotice({ status }) {
-  if (status.level === "stop") {
-    return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800 flex gap-3">
-        <ShieldAlert className="w-5 h-5 mt-0.5 shrink-0" />
-        <div>
-          <div className="font-semibold">今日は運動を中止してください</div>
-          <p className="text-sm mt-1">呼吸を整えて休みましょう。症状が続く場合や不安がある場合は、医療機関に相談してください。</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status.level === "light") {
-    return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 flex gap-3">
-        <ShieldAlert className="w-5 h-5 mt-0.5 shrink-0" />
-        <div>
-          <div className="font-semibold">今日は軽めメニュー推奨です</div>
-          <p className="text-sm mt-1">呼吸、首肩を軽く、5〜10分の散歩、夜のストレッチだけで十分です。</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 flex gap-3">
-      <CheckCircle2 className="w-5 h-5 mt-0.5 shrink-0" />
-      <div>
-        <div className="font-semibold">通常メニューで大丈夫です</div>
-        <p className="text-sm mt-1">息を止めず、痛みやフラつきがあればすぐ軽めに切り替えます。</p>
-      </div>
-    </div>
-  );
-}
-
-function getSafetyStatus(metrics) {
-  const dizziness = metrics.dizziness || "なし";
-  const head = metrics.headPressure || "なし";
-  const breath = metrics.breathlessness || "なし";
-  const chest = metrics.chestDiscomfort || "なし";
-  const sleep = metrics.sleep || "普通";
-  const shoulder = Number(metrics.shoulder || 0);
+function getSafetyStatus(m) {
+  const dizziness = m.dizziness || "なし";
+  const head = m.headPressure || "なし";
+  const breath = m.breathlessness || "なし";
+  const chest = m.chestDiscomfort || "なし";
+  const sleep = m.sleep || "普通";
+  const shoulder = Number(m.shoulder || 3);
 
   if (chest === "あり" || dizziness === "強い" || head === "強い" || breath === "強い") {
-    return { level: "stop" };
+    return "stop";
   }
-
   if (dizziness === "少し" || head === "少し" || breath === "少し" || sleep === "悪い" || shoulder >= 5) {
-    return { level: "light" };
+    return "light";
   }
-
-  return { level: "normal" };
+  return "normal";
 }
 
-function App() {
-  const [data, setData] = useState(defaultData);
-  const day = data.currentDay;
-  const current = program[day - 1];
-  const metrics = data.metrics?.[day] || {};
-  const log = data.logs?.[day] || {};
-
-  useEffect(() => {
-    setData(loadData());
-  }, []);
-
-  useEffect(() => {
-    saveData(data);
-  }, [data]);
-
-  const completedCount = useMemo(() => Object.values(data.logs || {}).filter((v) => v.status).length, [data.logs]);
-  const progress = Math.round((completedCount / 30) * 100);
-  const safetyStatus = getSafetyStatus(metrics);
-
-  const updateMetric = (key, value) => {
-    setData((prev) => ({
-      ...prev,
-      metrics: {
-        ...prev.metrics,
-        [day]: {
-          ...(prev.metrics?.[day] || {}),
-          [key]: value,
-        },
-      },
-    }));
-  };
-
-  const mark = (status) => {
-    setData((prev) => ({
-      ...prev,
-      logs: {
-        ...prev.logs,
-        [day]: {
-          status,
-          savedAt: new Date().toISOString(),
-        },
-      },
-    }));
-  };
-
-  const moveDay = (delta) => {
-    setData((prev) => ({ ...prev, currentDay: Math.min(30, Math.max(1, prev.currentDay + delta)) }));
-  };
-
-  const resetAll = () => {
-    if (window.confirm("記録をすべてリセットしますか？")) {
-      setData(defaultData());
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-white text-slate-900 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/80 border border-sky-100 px-3 py-1 text-sm text-sky-700 shadow-sm mb-3">
-              <Wind className="w-4 h-4" />
-              56歳からの体力再起動
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Body Restart 30</h1>
-            <p className="text-slate-600 mt-2">呼吸・ストレッチ・血流・歩行を30日で静かに戻す日めくりアプリ</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => moveDay(-1)} disabled={day === 1} className="rounded-2xl"><ChevronLeft className="w-4 h-4" /> 前日</Button>
-            <Button variant="outline" onClick={() => moveDay(1)} disabled={day === 30} className="rounded-2xl">翌日 <ChevronRight className="w-4 h-4" /></Button>
-          </div>
-        </header>
-
-        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-6">
-          <Card className="rounded-[2rem] shadow-xl border-white/70 bg-white/80 backdrop-blur">
-            <CardContent className="p-5 md:p-8">
-              <div className="flex items-center justify-between gap-4 mb-4">
-                <div>
-                  <div className="text-sm text-slate-500">Day {current.day} / 30・{current.phase}</div>
-                  <h2 className="text-2xl md:text-3xl font-bold mt-1">{current.title}</h2>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-slate-500">進捗</div>
-                  <div className="text-2xl font-bold text-sky-700">{progress}%</div>
-                </div>
-              </div>
-
-              <div className="h-3 bg-slate-100 rounded-full overflow-hidden mb-6">
-                <motion.div className="h-full bg-sky-400" initial={false} animate={{ width: `${progress}%` }} />
-              </div>
-
-              <div className="rounded-[2rem] bg-gradient-to-br from-white to-sky-50 border border-sky-100 p-4 mb-6">
-                <Visual type={current.visual} />
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 mb-5">
-                <div className="text-sm text-slate-500 mb-1">今日の目的</div>
-                <p className="text-lg font-medium text-slate-800">{current.goal}</p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-3 mb-5">
-                <MenuBlock icon={<Sun className="w-4 h-4 text-orange-500" />} title="朝" items={current.morning} />
-                <MenuBlock icon={<Wind className="w-4 h-4 text-sky-500" />} title="昼" items={current.noon} />
-                <MenuBlock icon={<Moon className="w-4 h-4 text-indigo-500" />} title="夜" items={current.night} />
-              </div>
-
-              <SafetyNotice status={safetyStatus} />
-
-              <div className="flex flex-wrap gap-3 mt-5">
-                <Button onClick={() => mark("完了")} disabled={safetyStatus.level === "stop"} className="rounded-2xl px-6 bg-sky-600 hover:bg-sky-700">完了</Button>
-                <Button onClick={() => mark("軽めで完了")} disabled={safetyStatus.level === "stop"} variant="secondary" className="rounded-2xl px-6">軽めで完了</Button>
-                <Button onClick={() => mark("休み")} variant="outline" className="rounded-2xl px-6">今日は休む</Button>
-                {log.status && <div className="flex items-center gap-2 text-sm text-slate-600"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> 記録済み：{log.status}</div>}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="space-y-6">
-            <Card className="rounded-[2rem] shadow-lg border-white/70 bg-white/85 backdrop-blur">
-              <CardContent className="p-5 md:p-6">
-                <h3 className="text-xl font-bold mb-4">今日の体調チェック</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="text-sm">
-                    <span className="text-slate-600">体重 kg</span>
-                    <input className="mt-1 w-full rounded-xl border border-slate-200 p-2" type="number" value={metrics.weight || ""} onChange={(e) => updateMetric("weight", e.target.value)} />
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">体脂肪 %</span>
-                    <input className="mt-1 w-full rounded-xl border border-slate-200 p-2" type="number" value={metrics.bodyFat || ""} onChange={(e) => updateMetric("bodyFat", e.target.value)} />
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">内臓脂肪</span>
-                    <input className="mt-1 w-full rounded-xl border border-slate-200 p-2" type="number" value={metrics.visceralFat || ""} onChange={(e) => updateMetric("visceralFat", e.target.value)} />
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">肩こり 1〜5</span>
-                    <select className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={metrics.shoulder || "3"} onChange={(e) => updateMetric("shoulder", e.target.value)}>
-                      {[1,2,3,4,5].map((n) => <option key={n} value={n}>{n}</option>)}
-                    </select>
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">頭の締め付け</span>
-                    <select className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={metrics.headPressure || "なし"} onChange={(e) => updateMetric("headPressure", e.target.value)}>
-                      <option>なし</option><option>少し</option><option>強い</option>
-                    </select>
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">フラつき</span>
-                    <select className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={metrics.dizziness || "なし"} onChange={(e) => updateMetric("dizziness", e.target.value)}>
-                      <option>なし</option><option>少し</option><option>強い</option>
-                    </select>
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">息苦しさ</span>
-                    <select className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={metrics.breathlessness || "なし"} onChange={(e) => updateMetric("breathlessness", e.target.value)}>
-                      <option>なし</option><option>少し</option><option>強い</option>
-                    </select>
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">胸の違和感</span>
-                    <select className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={metrics.chestDiscomfort || "なし"} onChange={(e) => updateMetric("chestDiscomfort", e.target.value)}>
-                      <option>なし</option><option>あり</option>
-                    </select>
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">睡眠</span>
-                    <select className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={metrics.sleep || "普通"} onChange={(e) => updateMetric("sleep", e.target.value)}>
-                      <option>良い</option><option>普通</option><option>悪い</option>
-                    </select>
-                  </label>
-                  <label className="text-sm">
-                    <span className="text-slate-600">気分</span>
-                    <select className="mt-1 w-full rounded-xl border border-slate-200 p-2" value={metrics.mood || "普通"} onChange={(e) => updateMetric("mood", e.target.value)}>
-                      <option>良い</option><option>普通</option><option>悪い</option>
-                    </select>
-                  </label>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[2rem] shadow-lg border-white/70 bg-white/85 backdrop-blur">
-              <CardContent className="p-5 md:p-6">
-                <h3 className="text-xl font-bold mb-4">30日カレンダー</h3>
-                <div className="grid grid-cols-6 gap-2">
-                  {program.map((p) => {
-                    const status = data.logs?.[p.day]?.status;
-                    return (
-                      <button key={p.day} onClick={() => setData((prev) => ({ ...prev, currentDay: p.day }))} className={`aspect-square rounded-2xl text-sm font-semibold border transition ${day === p.day ? "bg-sky-600 text-white border-sky-600" : status === "完了" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : status === "軽めで完了" ? "bg-amber-50 text-amber-700 border-amber-200" : status === "休み" ? "bg-slate-100 text-slate-500 border-slate-200" : "bg-white text-slate-600 border-slate-200 hover:bg-sky-50"}`}>
-                        {p.day}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-4 text-xs text-slate-500 leading-relaxed">
-                  ※ このアプリは医療診断ではありません。胸の違和感、強い息切れ、強いフラつき、強い頭の締め付けがある日は運動を中止してください。
-                </div>
-                <Button variant="ghost" onClick={resetAll} className="mt-3 rounded-2xl text-slate-500"><RotateCcw className="w-4 h-4 mr-1" /> 記録をリセット</Button>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[2rem] shadow-lg border-white/70 bg-white/85 backdrop-blur">
-              <CardContent className="p-5 md:p-6">
-                <h3 className="text-xl font-bold mb-3">今日の動き</h3>
-                <div className="space-y-3">
-                  {Object.entries(exercises).slice(0, 9).map(([key, ex]) => (
-                    <div key={key} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                      <div className="font-semibold text-slate-800">{ex.label}</div>
-                      <p className="text-sm text-slate-600 mt-1">{ex.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+function visualSvg(type) {
+  const grey = "#cbd5e1", blue = "#38bdf8", dark = "#64748b";
+  if (type === "breathing") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="130" cy="82" r="32" fill="${grey}"/><rect x="105" y="112" width="50" height="70" rx="25" fill="${grey}"/>
+      <ellipse class="breath" cx="130" cy="132" rx="48" ry="34" fill="none" stroke="${blue}" stroke-width="10"/>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">吸って、長く吐く</text>
+    </svg>`;
+  if (type === "neck") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <rect x="112" y="112" width="36" height="66" rx="18" fill="${grey}"/>
+      <g class="tilt"><circle cx="130" cy="78" r="34" fill="${grey}"/><line x1="162" y1="90" x2="194" y2="112" stroke="${blue}" stroke-width="8" stroke-linecap="round"/></g>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">首は小さく、ゆっくり</text>
+    </svg>`;
+  if (type === "shoulder") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="130" cy="70" r="30" fill="${grey}"/><rect x="98" y="102" width="64" height="76" rx="28" fill="${grey}"/>
+      <g class="spin1"><circle cx="86" cy="118" r="8" fill="${blue}"/><path d="M86 118 C64 92, 62 142, 86 118" fill="none" stroke="${blue}" stroke-width="6"/></g>
+      <g class="spin2"><circle cx="174" cy="118" r="8" fill="${blue}"/><path d="M174 118 C196 92, 198 142, 174 118" fill="none" stroke="${blue}" stroke-width="6"/></g>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">肩甲骨から回す</text>
+    </svg>`;
+  if (type === "chest") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="130" cy="70" r="30" fill="${grey}"/><rect x="100" y="104" width="60" height="76" rx="26" fill="${grey}"/>
+      <line class="open-left" x1="101" y1="122" x2="52" y2="104" stroke="${blue}" stroke-width="10" stroke-linecap="round"/>
+      <line class="open-right" x1="159" y1="122" x2="208" y2="104" stroke="${blue}" stroke-width="10" stroke-linecap="round"/>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">胸を開く、腰は反らない</text>
+    </svg>`;
+  if (type === "rotation" || type === "golf") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="130" cy="66" r="28" fill="${grey}"/>
+      <g class="rotate-body">
+        <rect x="96" y="98" width="68" height="78" rx="28" fill="${grey}"/>
+        <line x1="70" y1="126" x2="190" y2="126" stroke="${blue}" stroke-width="10" stroke-linecap="round"/>
+        ${type === "golf" ? `<line x1="182" y1="130" x2="214" y2="166" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>` : ""}
+      </g>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">背中と肋骨をゆっくり回す</text>
+    </svg>`;
+  if (type === "hip") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="130" cy="62" r="27" fill="${grey}"/><rect x="104" y="92" width="52" height="58" rx="24" fill="${grey}"/>
+      <line class="hip-left" x1="116" y1="144" x2="86" y2="178" stroke="${blue}" stroke-width="11" stroke-linecap="round"/>
+      <line class="hip-right" x1="144" y1="144" x2="174" y2="178" stroke="${blue}" stroke-width="11" stroke-linecap="round"/>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">股関節を小さくゆらす</text>
+    </svg>`;
+  if (type === "hamstring") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <g class="bend"><circle cx="130" cy="68" r="28" fill="${grey}"/><rect x="105" y="96" width="50" height="58" rx="22" fill="${grey}"/></g>
+      <line x1="118" y1="150" x2="82" y2="184" stroke="${blue}" stroke-width="11" stroke-linecap="round"/>
+      <line x1="142" y1="150" x2="178" y2="184" stroke="${blue}" stroke-width="11" stroke-linecap="round"/>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">反動なし、息を吐く</text>
+    </svg>`;
+  if (type === "calf" || type === "calfRaise") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="130" cy="62" r="27" fill="${grey}"/><rect x="104" y="92" width="52" height="58" rx="24" fill="${grey}"/>
+      <g class="${type === "calfRaise" ? "raise" : ""}"><line x1="116" y1="146" x2="110" y2="184" stroke="${blue}" stroke-width="11" stroke-linecap="round"/><line x1="144" y1="146" x2="150" y2="184" stroke="${blue}" stroke-width="11" stroke-linecap="round"/></g>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">ふくらはぎは血流のポンプ</text>
+    </svg>`;
+  if (type === "squat") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <g class="squat"><circle cx="130" cy="58" r="27" fill="${grey}"/><rect x="104" y="88" width="52" height="58" rx="24" fill="${grey}"/><line x1="116" y1="142" x2="98" y2="178" stroke="${blue}" stroke-width="11" stroke-linecap="round"/><line x1="144" y1="142" x2="162" y2="178" stroke="${blue}" stroke-width="11" stroke-linecap="round"/></g>
+      <rect x="82" y="180" width="96" height="8" rx="4" fill="${grey}"/>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">椅子に座るように浅く</text>
+    </svg>`;
+  if (type === "wallPush") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <rect x="205" y="30" width="8" height="150" rx="4" fill="${grey}"/>
+      <g class="push"><circle cx="112" cy="62" r="27" fill="${grey}"/><rect x="92" y="92" width="45" height="64" rx="22" fill="${grey}"/><line x1="135" y1="112" x2="204" y2="112" stroke="${blue}" stroke-width="10" stroke-linecap="round"/></g>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">首をすくめない</text>
+    </svg>`;
+  if (type === "plank") return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="78" cy="112" r="24" fill="${grey}"/><line x1="102" y1="120" x2="178" y2="132" stroke="${grey}" stroke-width="18" stroke-linecap="round"/>
+      <line x1="70" y1="134" x2="56" y2="164" stroke="${blue}" stroke-width="10" stroke-linecap="round"/><line x1="178" y1="132" x2="210" y2="162" stroke="${blue}" stroke-width="10" stroke-linecap="round"/>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">短く、息を止めない</text>
+    </svg>`;
+  return `
+    <svg viewBox="0 0 260 215" class="visual">
+      <circle cx="130" cy="70" r="28" fill="${grey}"/><rect x="106" y="98" width="48" height="62" rx="22" fill="${grey}"/>
+      <circle class="walk1" cx="105" cy="128" r="12" fill="${blue}"/><circle class="walk2" cx="155" cy="128" r="12" fill="${blue}"/>
+      <text x="130" y="203" text-anchor="middle" fill="${dark}" font-size="14">楽に歩く</text>
+    </svg>`;
 }
 
-export default App;
+function setList(id, items) {
+  document.getElementById(id).innerHTML = items.map(x => `<li>${x}</li>`).join("");
+}
+
+function bindField(id) {
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => {
+    currentMetrics()[id] = el.value;
+    saveState();
+    renderSafety();
+  });
+  el.addEventListener("change", () => {
+    currentMetrics()[id] = el.value;
+    saveState();
+    renderSafety();
+  });
+}
+
+function renderFields() {
+  const m = currentMetrics();
+  const defaults = {
+    weight:"", bodyFat:"", visceralFat:"", shoulder:"3",
+    headPressure:"なし", dizziness:"なし", breathlessness:"なし",
+    chestDiscomfort:"なし", sleep:"普通", mood:"普通"
+  };
+  Object.keys(defaults).forEach(id => {
+    document.getElementById(id).value = m[id] ?? defaults[id];
+  });
+}
+
+function renderSafety() {
+  const status = getSafetyStatus(currentMetrics());
+  const box = document.getElementById("safetyNotice");
+  document.getElementById("doneBtn").disabled = status === "stop";
+  document.getElementById("lightDoneBtn").disabled = status === "stop";
+
+  if (status === "stop") {
+    box.innerHTML = `<div class="notice stop"><strong>今日は運動を中止してください</strong>呼吸を整えて休みましょう。症状が続く場合や不安がある場合は、医療機関に相談してください。</div>`;
+  } else if (status === "light") {
+    box.innerHTML = `<div class="notice light"><strong>今日は軽めメニュー推奨です</strong>呼吸、首肩を軽く、5〜10分の散歩、夜のストレッチだけで十分です。</div>`;
+  } else {
+    box.innerHTML = `<div class="notice normal"><strong>通常メニューで大丈夫です</strong>息を止めず、痛みやフラつきがあればすぐ軽めに切り替えます。</div>`;
+  }
+}
+
+function renderCalendar() {
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+  program.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "day-btn";
+    const log = state.logs[p.day]?.status;
+    if (p.day === state.currentDay) b.classList.add("current");
+    else if (log === "完了") b.classList.add("done");
+    else if (log === "軽めで完了") b.classList.add("lightdone");
+    else if (log === "休み") b.classList.add("rest");
+    b.textContent = p.day;
+    b.addEventListener("click", () => {
+      state.currentDay = p.day;
+      saveState();
+      render();
+    });
+    cal.appendChild(b);
+  });
+}
+
+function render() {
+  const p = program[state.currentDay - 1];
+  document.getElementById("dayLabel").textContent = `Day ${p.day} / 30・${p.phase}`;
+  document.getElementById("dayTitle").textContent = p.title;
+  document.getElementById("goalText").textContent = p.goal;
+  document.getElementById("visualBox").innerHTML = visualSvg(p.visual);
+  setList("morningList", p.morning);
+  setList("noonList", p.noon);
+  setList("nightList", p.night);
+
+  const completed = Object.values(state.logs).filter(v => v && v.status).length;
+  const progress = Math.round(completed / 30 * 100);
+  document.getElementById("progressNumber").textContent = `${progress}%`;
+  document.getElementById("progressBar").style.width = `${progress}%`;
+
+  document.getElementById("prevBtn").disabled = state.currentDay === 1;
+  document.getElementById("nextBtn").disabled = state.currentDay === 30;
+
+  const log = state.logs[state.currentDay]?.status;
+  document.getElementById("logStatus").textContent = log ? `記録済み：${log}` : "";
+
+  renderFields();
+  renderSafety();
+  renderCalendar();
+}
+
+function mark(status) {
+  state.logs[state.currentDay] = { status, savedAt: new Date().toISOString() };
+  saveState();
+  render();
+}
+
+document.getElementById("prevBtn").addEventListener("click", () => {
+  state.currentDay = Math.max(1, state.currentDay - 1);
+  saveState(); render();
+});
+document.getElementById("nextBtn").addEventListener("click", () => {
+  state.currentDay = Math.min(30, state.currentDay + 1);
+  saveState(); render();
+});
+document.getElementById("doneBtn").addEventListener("click", () => mark("完了"));
+document.getElementById("lightDoneBtn").addEventListener("click", () => mark("軽めで完了"));
+document.getElementById("restBtn").addEventListener("click", () => mark("休み"));
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("記録をすべてリセットしますか？")) {
+    state = defaultState();
+    saveState();
+    render();
+  }
+});
+
+["weight","bodyFat","visceralFat","shoulder","headPressure","dizziness","breathlessness","chestDiscomfort","sleep","mood"].forEach(bindField);
+
+render();
+</script>
+</body>
+</html>
