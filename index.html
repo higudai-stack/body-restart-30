@@ -408,6 +408,105 @@
     @keyframes walk1 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
     @keyframes walk2 { 0%,100% { transform: translateY(-12px); } 50% { transform: translateY(0); } }
 
+
+    .howto-btn {
+      margin-left: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 1000;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(720px, 100%);
+      max-height: 86vh;
+      overflow: auto;
+      background: rgba(255,255,255,0.96);
+      border-radius: 28px;
+      box-shadow: 0 24px 70px rgba(15,23,42,0.28);
+      border: 1px solid rgba(255,255,255,0.9);
+    }
+
+    .modal-header {
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      z-index: 1;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .modal-body {
+      padding: 18px 20px 22px;
+    }
+
+    .guide-section {
+      margin-bottom: 18px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 14px 15px;
+    }
+
+    .guide-section h4 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #0369a1;
+    }
+
+    .guide-section p {
+      margin: 0;
+      color: #334155;
+      line-height: 1.75;
+    }
+
+    .guide-section ol,
+    .guide-section ul {
+      margin: 0;
+      padding-left: 1.35em;
+      color: #334155;
+      line-height: 1.75;
+    }
+
+    .close-btn {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      border-radius: 14px;
+    }
+
     @media (max-width: 900px) {
       header { flex-direction: column; align-items: stretch; }
       .layout { grid-template-columns: 1fr; }
@@ -555,6 +654,17 @@
       </aside>
     </main>
 
+
+    <div class="modal-backdrop" id="guideModal" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+        <div class="modal-header">
+          <h3 class="modal-title" id="guideTitle">やり方</h3>
+          <button class="close-btn" id="closeGuideBtn">閉じる</button>
+        </div>
+        <div class="modal-body" id="guideBody"></div>
+      </div>
+    </div>
+
     <div class="footer-note">
       Body Restart 30 v1.0 / localStorage保存 / GitHub Pages対応
     </div>
@@ -595,6 +705,199 @@ const program = [
   {day:29, phase:"定着期", title:"30日後の準備", visual:"walk", goal:"30日後も続ける形を考えながら歩きます。", morning:["呼吸 2分","胸郭回旋 2分"], noon:["25分歩行","早歩き30秒×4"], night:["ふくらはぎ 2分","ハムストリング 2分","呼吸 2分"]},
   {day:30, phase:"定着期", title:"再起動完了", visual:"golf", goal:"ここから次の30日へ。打ちっぱなし再開も選択肢に入れます。", morning:["呼吸 2分","胸開き 2分"], noon:["20〜30分歩行 または 打ちっぱなし30〜50球"], night:["股関節ゆらし 2分","ふくらはぎ 2分","呼吸 3分"]}
 ];
+
+
+const guideData = {
+  "呼吸": {
+    title: "呼吸",
+    purpose: "浅くなった呼吸を整え、首・肩の力を抜きます。運動の前に身体を落ち着かせるための基本メニューです。",
+    howto: ["椅子に座る、または仰向けになります。", "肩の力を抜きます。", "鼻からゆっくり吸います。", "口から細く長く吐きます。", "吸うより吐くを長めにします。", "2〜3分、無理のない範囲で続けます。"],
+    focus: "肩ではなく、お腹や肋骨まわり。吐く時に身体の力が抜ける感覚を意識します。",
+    caution: ["息を止めない", "深く吸おうとしすぎない", "肩を上げない", "苦しくなるほどやらない"],
+    light: "30秒〜1分だけでOKです。長く吐くことだけ意識します。"
+  },
+  "首ストレッチ": {
+    title: "首ストレッチ",
+    purpose: "首の横、肩の上、後頭部まわりの緊張を軽くします。肩こりや頭の締め付け感がある日の基本メニューです。",
+    howto: ["椅子に座るか、立った状態で背筋を軽く伸ばします。", "肩を上げないようにします。", "右耳を右肩に近づけるように、頭をゆっくり右へ倒します。", "左首の横が軽く伸びるところで10〜15秒止めます。", "反対側も同じように行います。", "左右1〜2回ずつ行います。"],
+    focus: "首の横、肩の上、耳の下から鎖骨にかけて。",
+    caution: ["首をぐるぐる回さない", "手で強く引っ張らない", "痛いところまで倒さない", "フラつく日は無理に行わない"],
+    light: "左右5秒ずつ、1回だけでOKです。頭を大きく倒さず、小さく動かします。"
+  },
+  "肩回し": {
+    title: "肩回し",
+    purpose: "固まった肩甲骨まわりを動かし、肩こりを軽くします。肩だけでなく背中も動かすためのメニューです。",
+    howto: ["椅子に座るか、立った状態で行います。", "両肩をゆっくり上げます。", "後ろに回して、下ろします。", "大きな円を描くように、前から後ろへ5回回します。", "余裕があれば、後ろから前へも5回回します。"],
+    focus: "肩甲骨、背中の上部、鎖骨まわり。",
+    caution: ["速く回さない", "首をすくめたまま行わない", "痛みがある方向に無理して回さない", "肩だけでなく背中も動かす意識を持つ"],
+    light: "前から後ろへ3回だけでOKです。小さな円で行います。"
+  },
+  "胸開き": {
+    title: "胸開き",
+    purpose: "PC作業や前かがみ姿勢で閉じた胸を開きます。呼吸をしやすくし、肩こりを軽くするためのメニューです。",
+    howto: ["椅子に座るか、立った状態で行います。", "両手を身体の横、または後ろに軽く引きます。", "胸の前が広がる位置で止めます。", "そのままゆっくり呼吸します。", "10〜20秒を1〜2回行います。"],
+    focus: "胸の前、鎖骨まわり、肩の前側。",
+    caution: ["腰を反らしすぎない", "肩をすくめない", "腕を強く後ろへ引かない", "胸を張るというより、胸の前を広げる感覚で行う"],
+    light: "両肘を軽く後ろに引くだけでOKです。10秒だけ行います。"
+  },
+  "胸郭回旋": {
+    title: "胸郭回旋",
+    purpose: "肋骨、背中、胸まわりを動かします。呼吸のしやすさ、姿勢、ゴルフ動作の土台にもつながります。",
+    howto: ["椅子に座るか、立った状態で行います。", "背筋を軽く伸ばします。", "両手を胸の前で軽く組みます。", "上半身をゆっくり右へ回します。", "正面に戻します。", "左も同じように行います。", "左右5回ずつ行います。"],
+    focus: "背中、肋骨、胸の横、みぞおちの周辺。",
+    caution: ["腰だけをねじらない", "反動をつけない", "首だけで回らない", "痛みのない範囲で小さく行う"],
+    light: "左右3回ずつでOKです。椅子に座って小さく動かします。"
+  },
+  "立ったまま胸郭回旋": {
+    title: "立ったまま胸郭回旋",
+    purpose: "座り姿勢で固まった上半身を、立った状態で軽く動かします。歩行前の準備にもなります。",
+    howto: ["足を肩幅くらいに開いて立ちます。", "両手を胸の前で軽く組みます。", "骨盤は正面に向けたまま、上半身を右へ回します。", "正面に戻します。", "左も同じように行います。", "左右5回ずつ行います。"],
+    focus: "背中、肋骨、腹部の横、胸の横。",
+    caution: ["大きくねじりすぎない", "腰を無理に回さない", "目が回るほど速く行わない", "フラつきがある日は座って行う"],
+    light: "椅子に座って、左右3回ずつ行います。"
+  },
+  "股関節ゆらし": {
+    title: "股関節ゆらし",
+    purpose: "固まった股関節を緩め、歩きやすい身体を作ります。下半身の重さを軽くするための基本メニューです。",
+    howto: ["足を肩幅くらいに開いて立ちます。", "膝を軽く曲げます。", "骨盤を左右に小さく揺らします。", "大きく動かさず、股関節の奥が緩む感覚を探します。", "1〜3分ほど行います。"],
+    focus: "脚の付け根、お尻の奥、骨盤まわり。",
+    caution: ["勢いよく振らない", "腰を反らしすぎない", "痛みが出る方向に動かさない", "フラつく日は壁や机に手を添える"],
+    light: "椅子に座って、膝を左右に小さく揺らすだけでOKです。"
+  },
+  "ハムストリング": {
+    title: "ハムストリングストレッチ",
+    purpose: "太もも裏を伸ばし、歩行時の脚の重さを軽くします。腰や骨盤まわりの負担を減らす狙いもあります。",
+    howto: ["椅子に浅く座ります。", "片脚を前に伸ばします。", "つま先を軽く上に向けます。", "背中を丸めすぎず、上半身を少し前に倒します。", "太もも裏が軽く伸びるところで15〜20秒止めます。", "反対側も同じように行います。"],
+    focus: "太ももの裏、膝の裏、お尻の下。",
+    caution: ["反動をつけない", "膝を無理に伸ばし切らない", "痛みが出るほど前屈しない", "腰を強く丸めない"],
+    light: "片脚10秒ずつでOKです。上半身はほとんど倒さなくても構いません。"
+  },
+  "ふくらはぎ": {
+    title: "ふくらはぎストレッチ",
+    purpose: "ふくらはぎを伸ばし、脚の血流と歩行のしやすさを戻します。足首の硬さ対策にもなります。",
+    howto: ["壁や机に手をつきます。", "片脚を後ろに引きます。", "後ろ脚のかかとを床につけます。", "ふくらはぎが軽く伸びる位置で15〜20秒止めます。", "反対側も同じように行います。"],
+    focus: "ふくらはぎ、アキレス腱まわり、足首。",
+    caution: ["かかとを無理に押し込まない", "膝や足首に痛みが出る角度で行わない", "反動をつけない", "バランスを崩さないよう、必ず支えを使う"],
+    light: "壁に手をついたまま、片脚10秒ずつでOKです。"
+  },
+  "足首回し": {
+    title: "足首回し",
+    purpose: "足首を動かし、歩行前の準備をします。ふくらはぎや足先の血流を促すための軽いメニューです。",
+    howto: ["椅子に座ります。", "片足を少し浮かせます。", "足首をゆっくり右回りに5回回します。", "左回りにも5回回します。", "反対の足も同じように行います。"],
+    focus: "足首、ふくらはぎ、足の甲、足裏。",
+    caution: ["速く回さない", "痛い方向に無理に回さない", "膝ごと大きく動かさない", "足先だけを丁寧に動かす"],
+    light: "左右3回ずつでOKです。足を浮かせにくい場合は、かかとを床につけたまま行います。"
+  },
+  "歩行": {
+    title: "歩行",
+    purpose: "心肺機能をいきなり鍛えるのではなく、まず血流を戻します。運動再開の土台になるメニューです。",
+    howto: ["歩きやすい靴で外に出ます。", "最初の2〜3分はゆっくり歩きます。", "その後も会話できるくらいのペースで歩きます。", "最後の1〜3分はペースを落として終わります。", "指定時間を目安にします。"],
+    focus: "呼吸、足裏、ふくらはぎ、背筋。終わった後に疲れすぎていないことも大切です。",
+    caution: ["走らない", "息が上がりすぎるペースにしない", "フラつきがある日は中止", "胸の違和感がある日は行わない"],
+    light: "指定時間の半分でOKです。家の周りや室内歩行でも構いません。"
+  },
+  "楽な歩行": {
+    title: "楽な歩行",
+    purpose: "回復日用の軽い運動です。疲労を抜きながら、血流だけ戻します。",
+    howto: ["散歩のつもりで歩きます。", "スピードは上げません。", "呼吸が乱れない範囲で歩きます。", "10〜15分を目安にします。"],
+    focus: "気持ちよさ、呼吸の楽さ、足裏の感覚。",
+    caution: ["トレーニングと思わない", "汗をかく必要はない", "疲れている日は5分でもOK", "フラつきがあれば中止"],
+    light: "家の中を数分歩くだけでもOKです。"
+  },
+  "早歩き": {
+    title: "早歩き30秒",
+    purpose: "心肺機能に少しだけ刺激を入れます。ランニングの代わりに、短い早歩きで循環を戻します。",
+    howto: ["普通に歩いて身体を温めます。", "30秒だけ少し速く歩きます。", "その後、1〜2分普通のペースに戻します。", "指定回数だけ繰り返します。"],
+    focus: "少し息が上がる程度。会話はできるくらい。脚よりも呼吸の変化を見ます。",
+    caution: ["全力で歩かない", "競歩のようにしない", "胸の違和感がある日は行わない", "フラつきがある日は行わない"],
+    light: "早歩きは省略します。普通の歩行だけでOKです。"
+  },
+  "椅子スクワット": {
+    title: "椅子スクワット",
+    purpose: "下半身に安全な筋力刺激を入れます。立つ・歩く動作の土台を作ります。",
+    howto: ["椅子の前に立ちます。", "足は肩幅くらいに開きます。", "お尻を後ろに引くように、浅くしゃがみます。", "椅子に軽く触れるくらいで立ち上がります。", "指定回数をゆっくり行います。"],
+    focus: "太もも、お尻、股関節、足裏。",
+    caution: ["膝を前に出しすぎない", "深くしゃがみすぎない", "息を止めない", "膝や腰に痛みがある日は中止"],
+    light: "椅子に座る・立つを3〜5回だけ行います。"
+  },
+  "かかと上げ": {
+    title: "かかと上げ",
+    purpose: "ふくらはぎを軽く使い、脚の血流を戻します。歩行の安定感にもつながります。",
+    howto: ["壁や机に手を添えて立ちます。", "両足を肩幅くらいに開きます。", "ゆっくりかかとを上げます。", "ゆっくり下ろします。", "指定回数を行います。"],
+    focus: "ふくらはぎ、足首、足裏。",
+    caution: ["反動を使わない", "高く上げようとしすぎない", "バランスを崩さないように支えを使う", "足首に痛みがある日は中止"],
+    light: "5回だけ行います。片足ではなく、必ず両足で行います。"
+  },
+  "壁腕立て": {
+    title: "壁腕立て",
+    purpose: "胸、肩、肩甲骨、体幹を軽く使います。通常の腕立て伏せではなく、姿勢を支えるためのメニューです。",
+    howto: ["壁の前に立ちます。", "両手を肩幅くらいで壁につきます。", "身体をまっすぐに保ちます。", "肘を軽く曲げて、身体を壁に近づけます。", "ゆっくり押し戻します。", "指定回数を行います。"],
+    focus: "胸、肩甲骨、二の腕、お腹まわり。",
+    caution: ["首をすくめない", "腰を反らない", "肘を深く曲げすぎない", "肩に痛みがある日は中止"],
+    light: "壁に手をついて、軽く押すだけでもOKです。回数は5回程度にします。"
+  },
+  "軽い体幹": {
+    title: "軽い体幹",
+    purpose: "姿勢を支える力を少し戻します。腹筋を追い込むのではなく、身体を安定させるためのメニューです。",
+    howto: ["壁、机、または床で楽な姿勢を選びます。", "身体をまっすぐに保ちます。", "お腹に軽く力を入れます。", "息を止めず、10秒だけ維持します。", "指定回数を行います。"],
+    focus: "お腹まわり、腰まわり、背中、姿勢全体。",
+    caution: ["長くやらない", "息を止めない", "腰を反らない", "首や肩に力を入れすぎない"],
+    light: "立ったまま、お腹に軽く力を入れて5秒だけでOKです。"
+  },
+  "打ちっぱなし": {
+    title: "打ちっぱなし30〜50球",
+    purpose: "運動としてではなく、身体感覚を戻すための任意メニューです。ゴルフの技術練習ではなく、回旋・リズム・気分転換として扱います。",
+    howto: ["体調が良い日に行います。", "最初は短いクラブ、または7番アイアン程度にします。", "30〜50球を目安にします。", "フルスイングより、リズムと軽さを優先します。", "終わった後は首肩と股関節を軽く伸ばします。"],
+    focus: "リズム、呼吸、身体の回旋、打った後の疲労感。",
+    caution: ["最初から打ちすぎない", "飛距離を求めない", "連続で強く打たない", "腰、首、肩に違和感があれば中止"],
+    light: "素振りだけ、または20球程度で終了します。"
+  }
+};
+
+function findGuideKey(item) {
+  const text = item.replace(/[0-9０-９]+[〜~]?([0-9０-９]+)?\s*(分|秒|回|球)?/g, "").replace(/[×x]\s*[0-9０-９]+/g, "");
+  const keys = Object.keys(guideData).sort((a, b) => b.length - a.length);
+  for (const key of keys) {
+    if (text.includes(key)) return key;
+  }
+  if (text.includes("10分歩行") || text.includes("12分歩行") || text.includes("15分歩行") || text.includes("18分歩行") || text.includes("20分歩行") || text.includes("22分歩行") || text.includes("25分歩行")) return "歩行";
+  if (text.includes("歩行")) return "歩行";
+  if (text.includes("早歩き")) return "早歩き";
+  if (text.includes("打ちっぱなし")) return "打ちっぱなし";
+  return null;
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[s]));
+}
+
+function renderGuideSection(title, content, ordered=false) {
+  if (!content) return "";
+  if (Array.isArray(content)) {
+    const tag = ordered ? "ol" : "ul";
+    return `<div class="guide-section"><h4>${title}</h4><${tag}>${content.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</${tag}></div>`;
+  }
+  return `<div class="guide-section"><h4>${title}</h4><p>${escapeHtml(content)}</p></div>`;
+}
+
+function showGuide(key) {
+  const g = guideData[key];
+  if (!g) return;
+  document.getElementById("guideTitle").textContent = g.title;
+  document.getElementById("guideBody").innerHTML =
+    renderGuideSection("目的", g.purpose) +
+    renderGuideSection("やり方", g.howto, true) +
+    renderGuideSection("意識する場所", g.focus) +
+    renderGuideSection("注意点", g.caution) +
+    renderGuideSection("軽めにする場合", g.light);
+  document.getElementById("guideModal").classList.add("show");
+  document.getElementById("guideModal").setAttribute("aria-hidden", "false");
+}
+
+function closeGuide() {
+  document.getElementById("guideModal").classList.remove("show");
+  document.getElementById("guideModal").setAttribute("aria-hidden", "true");
+}
 
 let state = loadState();
 
@@ -723,7 +1026,11 @@ function visualSvg(type) {
 }
 
 function setList(id, items) {
-  document.getElementById(id).innerHTML = items.map(x => `<li>${x}</li>`).join("");
+  document.getElementById(id).innerHTML = items.map(x => {
+    const key = findGuideKey(x);
+    const btn = key ? `<button class="howto-btn" type="button" data-guide="${escapeHtml(key)}">やり方</button>` : "";
+    return `<li><span>${escapeHtml(x)}</span>${btn}</li>`;
+  }).join("");
 }
 
 function bindField(id) {
@@ -840,6 +1147,23 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 });
 
 ["weight","bodyFat","visceralFat","shoulder","headPressure","dizziness","breathlessness","chestDiscomfort","sleep","mood"].forEach(bindField);
+
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-guide]");
+  if (btn) {
+    showGuide(btn.dataset.guide);
+  }
+  if (e.target.id === "guideModal") {
+    closeGuide();
+  }
+});
+
+document.getElementById("closeGuideBtn").addEventListener("click", closeGuide);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeGuide();
+});
 
 render();
 </script>
