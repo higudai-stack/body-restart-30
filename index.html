@@ -478,6 +478,45 @@
       transition: width 0.2s linear;
     }
 
+
+    .timer-finish-overlay {
+      display: none;
+      text-align: center;
+      margin: 12px auto 6px;
+      padding: 18px 14px;
+      width: min(360px, 86vw);
+      border-radius: 26px;
+      background: linear-gradient(135deg, #ecfdf5, #e0f2fe);
+      border: 2px solid #86efac;
+      box-shadow: 0 16px 36px rgba(5,150,105,0.18);
+      animation: finishPop 0.38s ease-out;
+    }
+
+    .timer-finish-overlay.show {
+      display: block;
+    }
+
+    .timer-finish-main {
+      font-size: clamp(46px, 14vw, 76px);
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -0.06em;
+      color: #059669;
+    }
+
+    .timer-finish-sub {
+      margin-top: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #047857;
+    }
+
+    @keyframes finishPop {
+      0% { transform: scale(0.86); opacity: 0; }
+      70% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     .timer-finished {
       text-align: center;
       font-weight: 900;
@@ -742,6 +781,10 @@
           <div class="timer-progress">
             <div class="timer-progress-bar" id="timerProgressBar"></div>
           </div>
+          <div class="timer-finish-overlay" id="timerFinishOverlay">
+            <div class="timer-finish-main">終了</div>
+            <div class="timer-finish-sub">おつかれさまでした</div>
+          </div>
           <div class="timer-controls">
             <button class="primary" id="timerStartPauseBtn">開始</button>
             <button class="outline" id="timerResetBtn">リセット</button>
@@ -987,7 +1030,8 @@ function startTimer() {
       timerRemaining = 0;
       stopTimer(false);
       document.getElementById("timerFinished").textContent = "終了です。おつかれさまでした。";
-      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      document.getElementById("timerFinishOverlay").classList.add("show");
+      if (navigator.vibrate) navigator.vibrate([300, 120, 300, 120, 450]);
     }
     renderTimer();
   }, 1000);
@@ -1005,6 +1049,7 @@ function resetTimer() {
   stopTimer(false);
   timerRemaining = timerTotal;
   document.getElementById("timerFinished").textContent = "";
+  document.getElementById("timerFinishOverlay").classList.remove("show");
   renderTimer();
 }
 
@@ -1014,6 +1059,7 @@ function openTimer(item, seconds) {
   timerRemaining = seconds;
   document.getElementById("timerItemLabel").textContent = item;
   document.getElementById("timerFinished").textContent = "";
+  document.getElementById("timerFinishOverlay").classList.remove("show");
   document.getElementById("timerModal").classList.add("show");
   document.getElementById("timerModal").setAttribute("aria-hidden", "false");
   renderTimer();
@@ -1356,6 +1402,8 @@ document.getElementById("timerResetBtn").addEventListener("click", resetTimer);
 document.getElementById("timerPlus30Btn").addEventListener("click", () => {
   timerTotal += 30;
   timerRemaining += 30;
+  document.getElementById("timerFinished").textContent = "";
+  document.getElementById("timerFinishOverlay").classList.remove("show");
   renderTimer();
 });
 
